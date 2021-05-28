@@ -2,7 +2,6 @@ import sys
 import random
 import os
 import numpy as np
-import pandas as pd
 import torch
 from tqdm.notebook import tqdm as tq
 from datetime import datetime as dt
