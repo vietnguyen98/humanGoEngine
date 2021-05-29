@@ -16,7 +16,7 @@ from multiprocessing import Pool
 def main():
 	assert len(sys.argv) == 4
 
-	def processGames(rankIdx, gameCount):
+	def processGames(rankIdx, gameCount = 1800):
 		ranks = ['5k', '4k', '3k', '2k', '1k', '1d', '2d', '3d', '4d']
 		ranksCheck = ['5çº§', '4çº§', '3çº§', '2çº§', '1çº§', '1æ®µ', '2æ®µ', '3æ®µ', '4æ®µ']
 
@@ -43,19 +43,19 @@ def main():
 		            continue
 		        try: 
 		            features, labels = gameToFeatures(game)
-	                if i < 6000:
+	                if i < 1500:
 	                    for j in range(len(features)):
 	                        torch.save(features[j], trainPath + "data/" + rank + "/" + idCounter + ".pt")
 	                        torch.save(labels[j], trainPath + "labels/" + rank + "/" + idCounter + ".pt")
 	                        np.savetxt(trainPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
 	                        idCounter += 1
-	                elif i < 6500:
+	                elif i < 1650:
 	                    for j in range(len(features)):
 	                        torch.save(features[j], valPath + "data/" + rank + "/" + idCounter + ".pt")
 	                        torch.save(labels[j], valPath + "labels/" + rank + "/" + idCounter + ".pt")
 	                        np.savetxt(valPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
 	                        idCounter += 1
-	                elif i < 7000: 
+	                elif i < 1800: 
 	                    for j in range(len(features)):
 	                        torch.save(features[j], testPath + "data/" + rank + "/" + idCounter + ".pt")
 	                        torch.save(labels[j], testPath + "labels/" + rank + "/" + idCounter + ".pt")
