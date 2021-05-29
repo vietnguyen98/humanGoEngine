@@ -36,7 +36,7 @@ def processGames(rankIdx, gameCount = 1):
 			fileCounter += 1
 			with open(file, "rb") as f:
 				game = sgf.Sgf_game.from_bytes(f.read())
-			if not filterGame(game, rankToText(rankCheck)):
+			if not filterGame(game, rankCheck):
 				continue
 			try:
 				features, labels = gameToFeatures(game)
