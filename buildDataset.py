@@ -60,7 +60,7 @@ def processGames(rankIdx, gameCount = 1):
 						idCounter += 1
 			except Exception:
 				continue 
-				break
+			break
 
 def main():
 	assert len(sys.argv) == 4
