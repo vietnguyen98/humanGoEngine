@@ -1,5 +1,16 @@
 import torch
 from torch.utils.data import Dataset
+import sys
+import random
+import os
+import numpy as np
+from datetime import datetime as dt
+import glob
+from collections import Counter
+from sgfmill import sgf
+from sgfmill import boards
+from sgfmill import ascii_boards
+from tqdm import tqdm as tq
 
 class GoDataset(Dataset):
   # pos_paths: list of paths to position features
