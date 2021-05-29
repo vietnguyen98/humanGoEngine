@@ -42,21 +42,21 @@ def processGames(rankIdx, gameCount = 1):
 				features, labels = gameToFeatures(game)
 				if i < 1500:
 					for j in range(len(features)):
-						torch.save(features[j], trainPath + "data/" + rank + "/" + idCounter + ".pt")
-						torch.save(labels[j], trainPath + "labels/" + rank + "/" + idCounter + ".pt")
-						np.savetxt(trainPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
+						torch.save(features[j], trainPath + "data/" + rank + "/" + str(idCounter) + ".pt")
+						torch.save(labels[j], trainPath + "labels/" + rank + "/" + str(idCounter) + ".pt")
+						np.savetxt(trainPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
 						idCounter += 1
 				elif i < 1650:
 					for j in range(len(features)):
-						torch.save(features[j], valPath + "data/" + rank + "/" + idCounter + ".pt")
-						torch.save(labels[j], valPath + "labels/" + rank + "/" + idCounter + ".pt")
-						np.savetxt(valPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
+						torch.save(features[j], valPath + "data/" + rank + "/" + str(idCounter) + ".pt")
+						torch.save(labels[j], valPath + "labels/" + rank + "/" + str(idCounter) + ".pt")
+						np.savetxt(valPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
 						idCounter += 1
 				elif i < 1800: 
 					for j in range(len(features)):
-						torch.save(features[j], testPath + "data/" + rank + "/" + idCounter + ".pt")
-						torch.save(labels[j], testPath + "labels/" + rank + "/" + idCounter + ".pt")
-						np.savetxt(testPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
+						torch.save(features[j], testPath + "data/" + rank + "/" + str(idCounter) + ".pt")
+						torch.save(labels[j], testPath + "labels/" + rank + "/" + str(idCounter) + ".pt")
+						np.savetxt(testPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
 						idCounter += 1
 			except Exception:
 				continue 
