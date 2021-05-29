@@ -13,7 +13,7 @@ from tqdm import tqdm as tq
 from util import buildFeatures, checkSimpleKo, gameToFeatures, filterGame
 from multiprocessing import Pool
 
-def processGames(rankIdx, gameCount = 1):
+def processGames(rankIdx, gameCount = 1800):
 	ranks = ['5k', '4k', '3k', '2k', '1k', '1d', '2d', '3d', '4d']
 	ranksCheck = ['5çº§', '4çº§', '3çº§', '2çº§', '1çº§', '1æ®µ', '2æ®µ', '3æ®µ', '4æ®µ']
 
@@ -40,16 +40,11 @@ def processGames(rankIdx, gameCount = 1):
 				continue
 			try:
 				features, labels = gameToFeatures(game)
-				print("got feats")
 				if i < 1500:
 					for j in range(len(features)):
-						print("j: ", j)
 						torch.save(features[j], trainPath + "data/" + rank + "/" + str(idCounter) + ".pt")
-						print("x")
 						torch.save(labels[j], trainPath + "labels/" + rank + "/" + str(idCounter) + ".pt")
-						print("y")
 						np.savetxt(trainPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
-						print("z")
 						idCounter += 1
 				elif i < 1650:
 					for j in range(len(features)):
@@ -63,17 +58,17 @@ def processGames(rankIdx, gameCount = 1):
 						torch.save(labels[j], testPath + "labels/" + rank + "/" + str(idCounter) + ".pt")
 						np.savetxt(testPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
 						idCounter += 1
-			except Exception:
-				print("except")
+			except Exception as e:
 				continue 
 			break
+	return
 
 def main():
-	assert len(sys.argv) == 4
+	assert len(sys.argv) == 3
 
-	print("using rankIdxs: ", [sys.argv[1], sys.argv[2], sys.argv[3]])
-	with Pool(3) as p:
-		p.map(processGames, [int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])])
+	print("using rankIdxs: ", [sys.argv[1], sys.argv[2]])# , sys.argv[3]])
+	with Pool(2) as p:
+		p.map(processGames, [int(sys.argv[1]), int(sys.argv[2])])#, int(sys.argv[3])])
 
 if __name__ == '__main__':
     main()

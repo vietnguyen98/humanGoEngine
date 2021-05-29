@@ -168,7 +168,7 @@ def gameToFeatures(game):
     b = boards.Board(19)
     
     rankOneHot = None
-    for rankInd, rank in enumerate(newRanks):        
+    for rankInd, rank in enumerate(['5çº§', '4çº§', '3çº§', '2çº§', '1çº§', '1æ®µ', '2æ®µ', '3æ®µ', '4æ®µ']):        
         if root_node.get("BR") == rank and root_node.get("WR") == rank:
             assert rankOneHot == None
             rankOneHot = rankInd
