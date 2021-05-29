@@ -40,6 +40,7 @@ def processGames(rankIdx, gameCount = 1):
 				continue
 			try:
 				features, labels = gameToFeatures(game)
+				print("got feats")
 				if i < 1500:
 					for j in range(len(features)):
 						print("j: ", j)
