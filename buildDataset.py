@@ -11,9 +11,10 @@ from sgfmill import boards
 from sgfmill import ascii_boards
 from tqdm import tqdm as tq
 from util import buildFeatures, checkSimpleKo, gameToFeatures, filterGame
+from multiprocessing import Pool
 
 def main():
-	assert len(sys.argv) == 2
+	assert len(sys.argv) == 4
 
 	def processGames(rankIdx, gameCount):
 		ranks = ['5k', '4k', '3k', '2k', '1k', '1d', '2d', '3d', '4d']
@@ -42,26 +43,31 @@ def main():
 		            continue
 		        try: 
 		            features, labels = gameToFeatures(game)
-		            if i < 6000:
-		                for j in range(len(features)):
-		                    torch.save(features[j], trainPath + "data/" + rank + idCounter + ".pt")
-		                    torch.save(labels[j], trainPath + "labels/" + rank + idCounter + ".pt")
-		                    idCounter += 1
-		            elif i < 6500:
-		                for j in range(len(features)):
-		                    torch.save(features[j], valPath + "data/" + rank + idCounter + ".pt")
-		                    torch.save(labels[j], valPath + "labels/" + rank + idCounter + ".pt")
-		                    idCounter += 1
-		            elif i < 7000:
-		                for j in range(len(features)):
-		                    torch.save(features[j], testPath + "data/" + rank + idCounter + ".pt")
-		                    torch.save(labels[j], testPath + "labels/" + rank + idCounter + ".pt")
-		                    idCounter += 1
+	                if i < 6000:
+	                    for j in range(len(features)):
+	                        torch.save(features[j], trainPath + "data/" + rank + "/" + idCounter + ".pt")
+	                        torch.save(labels[j], trainPath + "labels/" + rank + "/" + idCounter + ".pt")
+	                        np.savetxt(trainPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
+	                        idCounter += 1
+	                elif i < 6500:
+	                    for j in range(len(features)):
+	                        torch.save(features[j], valPath + "data/" + rank + "/" + idCounter + ".pt")
+	                        torch.save(labels[j], valPath + "labels/" + rank + "/" + idCounter + ".pt")
+	                        np.savetxt(valPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
+	                        idCounter += 1
+	                elif i < 7000: 
+	                    for j in range(len(features)):
+	                        torch.save(features[j], testPath + "data/" + rank + "/" + idCounter + ".pt")
+	                        torch.save(labels[j], testPath + "labels/" + rank + "/" + idCounter + ".pt")
+	                        np.savetxt(testPath + "meta/" + rank + "/" + idCounter + ".np", np.array([file]), fmt='%s')
+	                        idCounter += 1
 		        except Exception:
 		            continue 
 		        break
 
-	processGames(int(sys.argv[1]), 7000)
+	print("using rankIdxs: ", [sys.argv[1], sys.argv[2], sys.argv[3]])
+    with Pool(3) as p:
+        p.map(processGames, [sys.argv[1], sys.argv[2], sys.argv[3]])
 
 if __name__ == '__main__':
     main()
