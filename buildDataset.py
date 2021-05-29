@@ -17,7 +17,7 @@ def processGames(rankIdx, gameCount = 1):
 	ranks = ['5k', '4k', '3k', '2k', '1k', '1d', '2d', '3d', '4d']
 	ranksCheck = ['5çº§', '4çº§', '3çº§', '2çº§', '1çº§', '1æ®µ', '2æ®µ', '3æ®µ', '4æ®µ']
 
-	dataPath = "../cleanedGoData" + ranks[rankIdx]
+	dataPath = "../cleanedGoData/" + ranks[rankIdx]
 	trainPath = "../cleanedGoData/train/"
 	valPath = "../cleanedGoData/val/"
 	testPath = "../cleanedGoData/test/"
