@@ -42,9 +42,13 @@ def processGames(rankIdx, gameCount = 1):
 				features, labels = gameToFeatures(game)
 				if i < 1500:
 					for j in range(len(features)):
+						print("j: ", j)
 						torch.save(features[j], trainPath + "data/" + rank + "/" + str(idCounter) + ".pt")
+						print("x")
 						torch.save(labels[j], trainPath + "labels/" + rank + "/" + str(idCounter) + ".pt")
+						print("y")
 						np.savetxt(trainPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
+						print("z")
 						idCounter += 1
 				elif i < 1650:
 					for j in range(len(features)):
@@ -59,6 +63,7 @@ def processGames(rankIdx, gameCount = 1):
 						np.savetxt(testPath + "meta/" + rank + "/" + str(idCounter) + ".np", np.array([file]), fmt='%s')
 						idCounter += 1
 			except Exception:
+				print("except")
 				continue 
 			break
 
