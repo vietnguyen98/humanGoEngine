@@ -34,10 +34,16 @@ def processGames(rankIdx, gameCount = 1800):
 		while True:
 			file = files[fileCounter]
 			fileCounter += 1
-			with open(file, "rb") as f:
-				game = sgf.Sgf_game.from_bytes(f.read())
-			if not filterGame(game, rankCheck):
+			try:
+				with open(file, "rb") as f:
+					game = sgf.Sgf_game.from_bytes(f.read())
+			except Exception as e:
 				continue
+			try:
+				if not filterGame(game, rankCheck):
+					continue
+			except Exception as e:
+				continue    
 			try:
 				features, labels = gameToFeatures(game)
 				if i < 1500:
@@ -64,11 +70,11 @@ def processGames(rankIdx, gameCount = 1800):
 	return
 
 def main():
-	assert len(sys.argv) == 3
+	assert len(sys.argv) == 4
 
-	print("using rankIdxs: ", [sys.argv[1], sys.argv[2]])# , sys.argv[3]])
-	with Pool(2) as p:
-		p.map(processGames, [int(sys.argv[1]), int(sys.argv[2])])#, int(sys.argv[3])])
+	print("using rankIdxs: ", [sys.argv[1], sys.argv[2], sys.argv[3]])
+	with Pool(3) as p:
+		p.map(processGames, [int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])])
 
 if __name__ == '__main__':
     main()
