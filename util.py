@@ -28,6 +28,11 @@ class GoDataset(Dataset):
 
         return pos, label
 
+def getCorrectCount(pred, y):
+    # pred: batch_size x 361
+    # y: batch_size x 361
+    return (torch.argmax(pred, dim = 1) == torch.argmax(pred, y, dim = 1)).sum()
+
 def buildFeatures(positions):
     # input: 19 x 19 x 3 input: my stones, their stones, empty spots
     # output: 19 x 19 x 32: 
