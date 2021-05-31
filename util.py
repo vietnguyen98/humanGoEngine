@@ -18,16 +18,15 @@ class GoDataset(Dataset):
   def __init__(self, pos_paths, label_paths):
         self.label_paths = label_paths
         self.pos_paths = pos_paths
-        self.pos = 
-        self.labels =  
 
   def __len__(self):
         return len(self.pos_paths)
 
   def __getitem__(self, idx):
         pos = torch.load(self.pos_paths[idx])
-        label = torch.load(self.label_paths[idx])
-
+        correctClass= torch.load(self.label_paths[idx])
+        label = torch.zeros(361)
+        label[correctClass[0] * 19 + correctClass[1]] = 1
         return pos, label
 
 def getPaths(prefix):
@@ -41,6 +40,7 @@ def getPaths(prefix):
             print(rank, len(data), len(labels))
             fullDataPaths.extend(data)
             fullLabelPaths.extend(labels)
+    return fullDataPaths, fullLabelPaths
 
 def getCorrectCount(pred, y):
     # pred: batch_size x 361

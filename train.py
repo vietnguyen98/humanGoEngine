@@ -11,14 +11,16 @@ from torch.utils.data import DataLoader
 from tqdm import tqdm
 from util import GoDataset, getCorrectCount, getPaths
 from torch.utils.tensorboard import SummaryWriter
+from layers import OutputLayer
 
 def main():
 	# set hyperparameters:
-	num_epochs = 10
-	lr = 
+	num_epochs = 5
+	lr = .05
 	steps_till_eval = 50000
+	bestAcc = -1
 	assert len(sys.argv) = 2
-	savePath = "logs/" + str(sys.arv[1])
+	savePath = "logs/" + str(sys.argv[1])
 	print("Tensorboard logs will be saved here: ", savePath)
 	writer = SummaryWriter(log_dir = savePath)
 
@@ -28,18 +30,24 @@ def main():
 		device = torch.device('cpu')
 	print("using device: ", device)
 
+	modelSavePath = "models/" + str(sys.argv[1])
+	print("model will be saved here: ")
 
-	model = 
+
+	model = OutputLayer(55)
 	model = model.to(device)
 	model.train()
 	loss_fn = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr = lr)
 
-	training_data = getPaths("../cleanedGoData/train/")
-	val_data = getPaths("../cleanedGoData/val/")
+	trainDPaths, trainLPaths = getPaths("../cleanedGoData/train/")
+	valDPaths, valLPaths = getPaths("../cleanedGoData/val/")
+
+	training_data = GoDataset(trainDPaths, trainLPaths)
+	val_data = GoDataset(valDPaths, valLPaths)
 
 	train_loader = DataLoader(training_data, batch_size = 128, shuffle = True)
-	val_loader = DataLoader(val_datam, batch_size = 128, shuffle = True)
+	val_loader = DataLoader(val_data, batch_size = 128, shuffle = True)
 
 	for t in range(num_epochs):
 		print("Epoch ", t + 1, "\n-----------------------------")
@@ -69,6 +77,10 @@ def main():
                     loss, accuracy = evaluate(model, val_loader, device)
                     writer.add_scalar('val/NLL', loss)
                     writer.add_scalar('val/acc', accuracy)
+                    if accuracy > bestAcc:
+                    	bestAcc = accuracy
+                    	torch.save(model, modelSavePath + str(step))
+                    	print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + str(step))
 	return
 
 def evaluate(model, val_loader, device):
