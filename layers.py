@@ -6,7 +6,7 @@ class OutputLayer(nn.Module):
 	# 1v1 conv + symmetric bias
 	def __init__(self, in_channels):
 		super(OutputLayer, self).__init__()
-		self.biasMap = torch.zeros(19, 19)
+		self.biasMap = torch.zeros(19, 19, dtype = torch.int32)
 		self.conv = nn.Conv2d(in_channels, 1, 1, bias = False)
 		self.flatten = nn.Flatten()
 		counter = 0
@@ -30,7 +30,7 @@ class OutputLayer(nn.Module):
 		x = self.conv(x)
 		for i in range(19):
 			for j in range(19):
-				x[i][j] += self.bias[self.biasMap[i][j] - 1]
+				x[:, :, i, j] += self.bias[self.biasMap[i][j] - 1]
 		x = self.flatten(x)
 		return x
 

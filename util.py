@@ -24,9 +24,9 @@ class GoDataset(Dataset):
 
   def __getitem__(self, idx):
         pos = torch.load(self.pos_paths[idx])
+        pos = pos.permute(2, 0, 1)
         correctClass= torch.load(self.label_paths[idx])
-        label = torch.zeros(361)
-        label[correctClass[0] * 19 + correctClass[1]] = 1
+        label = correctClass[0] * 19 + correctClass[1]
         return pos, label
 
 def getPaths(prefix):
@@ -43,8 +43,8 @@ def getPaths(prefix):
 
 def getCorrectCount(pred, y):
     # pred: batch_size x 361
-    # y: batch_size x 361
-    return (torch.argmax(pred, dim = 1) == torch.argmax(pred, y, dim = 1)).sum()
+    # y: batch_size
+    return (torch.argmax(pred, dim = 1) == y).sum()
 
 def buildFeatures(positions):
     # input: 19 x 19 x 3 input: my stones, their stones, empty spots

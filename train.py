@@ -15,9 +15,11 @@ from layers import OutputLayer
 
 def main():
 	# set hyperparameters:
-	num_epochs = 5
+	num_epochs = 1
 	lr = .05
-	steps_till_eval = 50000
+	max_grad_norm = 5.0
+	eval_every = 10000
+	steps_till_eval = eval_every
 	bestAcc = -1
 	assert len(sys.argv) == 2
 	savePath = "logs/" + str(sys.argv[1])
@@ -43,7 +45,11 @@ def main():
 	print("getting paths")
 	trainDPaths, trainLPaths = getPaths("../cleanedGoData/train/")
 	valDPaths, valLPaths = getPaths("../cleanedGoData/val/")
-
+	trainDPaths = trainDPaths[:50000]
+	trainLPaths = trainLPaths[:50000]
+	valDPaths = valDPaths[:10000]
+	valLPaths = valLPaths[:10000]
+    
 	print("building dataset")
 	training_data = GoDataset(trainDPaths, trainLPaths)
 	val_data = GoDataset(valDPaths, valLPaths)
@@ -52,6 +58,7 @@ def main():
 	train_loader = DataLoader(training_data, batch_size = 128, shuffle = True, num_workers = 4)
 	val_loader = DataLoader(val_data, batch_size = 128, shuffle = True, num_workers = 4)
 
+	step = 0 
 	for t in range(num_epochs):
 		print("Epoch ", t + 1, "\n-----------------------------")
 		with torch.enable_grad(), \
@@ -64,34 +71,35 @@ def main():
 				loss = loss_fn(pred, y)
 				optimizer.zero_grad()
 				loss.backward()
+				nn.utils.clip_grad_norm_(model.parameters(), max_grad_norm)
 				optimizer.step()
 
 				# recording
 				step += batch_size
 				progress_bar.update(batch_size)
-				progress_bar.set_postfix(epoch=epoch, NLL=loss_val)
-				writer.add_scalar('train/NLL', loss_val, step)
+				progress_bar.set_postfix(epoch=t + 1, NLL=loss.item())
+				writer.add_scalar('train/NLL', loss, step)
 
 				steps_till_eval -= batch_size
 				if steps_till_eval <= 0:
-					steps_till_eval = 50000
-					loss, accuracy = evaluate(model, val_loader, device)
-					writer.add_scalar('val/NLL', loss)
-					writer.add_scalar('val/acc', accuracy)
+					steps_till_eval = eval_every
+					print("\nevaluating model...")
+					loss_val, accuracy = evaluate(model, val_loader, device, loss_fn)
+					writer.add_scalar('val/NLL', loss_val, step)
+					writer.add_scalar('val/acc', accuracy, step)
 					if accuracy > bestAcc:
 						bestAcc = accuracy
 						torch.save(model, modelSavePath + str(step))
 						print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + str(step))
 	return
 
-def evaluate(model, val_loader, device):
+def evaluate(model, val_loader, device, loss_fn):
 	model.eval()
 	total=len(val_loader.dataset)
 	lossTotal = 0
 	accuracyTotal = 0
 	currTotal = 0
-	with torch.no_grad(), \
-			tqdm(total=len(val_loader.dataset)) as progress_bar:
+	with torch.no_grad():
 		for batch, (X, y) in enumerate(val_loader):
 			X = X.to(device)
 			batch_size = X.shape[0]
@@ -102,8 +110,22 @@ def evaluate(model, val_loader, device):
 			currTotal += batch_size
 			lossTotal += loss * batch_size
 			accuracyTotal += getCorrectCount(pred, y)
-			progress_bar.update(batch_size)
-			progress_bar.set_postfix(NLL=lossTotal / currTotal)
+	'''
+	with torch.no_grad(), \
+			tqdm(total=len(val_loader.dataset)) as progress_bar2:
+		for batch, (X, y) in enumerate(val_loader):
+			X = X.to(device)
+			batch_size = X.shape[0]
+			pred = model(X)
+			y = y.to(device)
+			loss = loss_fn(pred, y)
+
+			currTotal += batch_size
+			lossTotal += loss * batch_size
+			accuracyTotal += getCorrectCount(pred, y)
+			progress_bar2.update(batch_size)
+			progress_bar2.set_postfix(NLL = lossTotal.item() / currTotal)
+	'''
 	lossTotal = lossTotal / total
 	accuracyTotal = accuracyTotal / total
 	return lossTotal, accuracyTotal
