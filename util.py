@@ -15,18 +15,32 @@ from tqdm import tqdm as tq
 class GoDataset(Dataset):
   # pos_paths: list of paths to position features
   # labels: list of moves played in a given position
-  def __init__(self, pos_paths, labels):
-        self.labels = labels
+  def __init__(self, pos_paths, label_paths):
+        self.label_paths = label_paths
         self.pos_paths = pos_paths
+        self.pos = 
+        self.labels =  
 
   def __len__(self):
         return len(self.pos_paths)
 
   def __getitem__(self, idx):
-        pos = torch.load(pos_paths[idx])
-        label = self.labels[idx]
+        pos = torch.load(self.pos_paths[idx])
+        label = torch.load(self.label_paths[idx])
 
         return pos, label
+
+def getPaths(prefix):
+    fullDataPaths = []
+    fullLabelPaths = []
+    for rank in ranks:
+        data = glob.glob(prefix + "data/" + rank + "/*.pt")
+        labels = glob.glob(prefix + "labels/" + rank + "/*.pt")
+        for i in range(len(data)):
+            assert data[0].rsplit('/', 1)[1] == labels[0].rsplit('/', 1)[1]
+            print(rank, len(data), len(labels))
+            fullDataPaths.extend(data)
+            fullLabelPaths.extend(labels)
 
 def getCorrectCount(pred, y):
     # pred: batch_size x 361

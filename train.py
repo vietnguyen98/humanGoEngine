@@ -9,7 +9,7 @@ import torch.optim.lr_scheduler as sc
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from tqdm import tqdm
-from util import GoDataset, getCorrectCount
+from util import GoDataset, getCorrectCount, getPaths
 from torch.utils.tensorboard import SummaryWriter
 
 def main():
@@ -28,12 +28,15 @@ def main():
 		device = torch.device('cpu')
 	print("using device: ", device)
 
+
 	model = 
 	model = model.to(device)
 	model.train()
 	loss_fn = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr = lr)
 
+	training_data = getPaths("../cleanedGoData/train/")
+	val_data = getPaths("../cleanedGoData/val/")
 
 	train_loader = DataLoader(training_data, batch_size = 128, shuffle = True)
 	val_loader = DataLoader(val_datam, batch_size = 128, shuffle = True)
