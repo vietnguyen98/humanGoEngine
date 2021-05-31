@@ -19,7 +19,7 @@ def main():
 	lr = .05
 	steps_till_eval = 50000
 	bestAcc = -1
-	assert len(sys.argv) = 2
+	assert len(sys.argv) == 2
 	savePath = "logs/" + str(sys.argv[1])
 	print("Tensorboard logs will be saved here: ", savePath)
 	writer = SummaryWriter(log_dir = savePath)
@@ -31,7 +31,7 @@ def main():
 	print("using device: ", device)
 
 	modelSavePath = "models/" + str(sys.argv[1])
-	print("model will be saved here: ")
+	print("model will be saved here: ", modelSavePath)
 
 
 	model = OutputLayer(55)
@@ -40,47 +40,48 @@ def main():
 	loss_fn = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr = lr)
 
+	print("getting paths")
 	trainDPaths, trainLPaths = getPaths("../cleanedGoData/train/")
 	valDPaths, valLPaths = getPaths("../cleanedGoData/val/")
 
+	print("building dataset")
 	training_data = GoDataset(trainDPaths, trainLPaths)
 	val_data = GoDataset(valDPaths, valLPaths)
 
-	train_loader = DataLoader(training_data, batch_size = 128, shuffle = True)
-	val_loader = DataLoader(val_data, batch_size = 128, shuffle = True)
+	print("building dataloader")
+	train_loader = DataLoader(training_data, batch_size = 128, shuffle = True, num_workers = 4)
+	val_loader = DataLoader(val_data, batch_size = 128, shuffle = True, num_workers = 4)
 
 	for t in range(num_epochs):
 		print("Epoch ", t + 1, "\n-----------------------------")
-        with torch.enable_grad(), \
-                tqdm(total=len(train_loader.dataset)) as progress_bar:
-            for batch, (X, y) in enumerate(train_loader):
-            	X = X.to(device)
-            	batch_size = X.shape[0]
-            	pred = model(X)
+		with torch.enable_grad(), \
+				tqdm(total=len(train_loader.dataset)) as progress_bar:
+			for batch, (X, y) in enumerate(train_loader):
+				X = X.to(device)
+				batch_size = X.shape[0]
+				pred = model(X)
+				y = y.to(device)
+				loss = loss_fn(pred, y)
+				optimizer.zero_grad()
+				loss.backward()
+				optimizer.step()
 
-            	y = y.to(device)
-            	loss = loss_fn(pred, y)
-
-            	optimizer.zero_grad()
-            	loss.backward()
-            	optimizer.step()
-
-            	# recording
+				# recording
 				step += batch_size
 				progress_bar.update(batch_size)
 				progress_bar.set_postfix(epoch=epoch, NLL=loss_val)
-                writer.add_scalar('train/NLL', loss_val, step)
+				writer.add_scalar('train/NLL', loss_val, step)
 
-                steps_till_eval -= batch_size
-                if steps_till_eval <= 0:
-                    steps_till_eval = 50000
-                    loss, accuracy = evaluate(model, val_loader, device)
-                    writer.add_scalar('val/NLL', loss)
-                    writer.add_scalar('val/acc', accuracy)
-                    if accuracy > bestAcc:
-                    	bestAcc = accuracy
-                    	torch.save(model, modelSavePath + str(step))
-                    	print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + str(step))
+				steps_till_eval -= batch_size
+				if steps_till_eval <= 0:
+					steps_till_eval = 50000
+					loss, accuracy = evaluate(model, val_loader, device)
+					writer.add_scalar('val/NLL', loss)
+					writer.add_scalar('val/acc', accuracy)
+					if accuracy > bestAcc:
+						bestAcc = accuracy
+						torch.save(model, modelSavePath + str(step))
+						print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + str(step))
 	return
 
 def evaluate(model, val_loader, device):
@@ -89,22 +90,22 @@ def evaluate(model, val_loader, device):
 	lossTotal = 0
 	accuracyTotal = 0
 	currTotal = 0
-    with torch.no_grad(), \
-            tqdm(total=len(val_loader.dataset)) as progress_bar:
-        for batch, (X, y) in enumerate(val_loader):
-        	X = X.to(device)
-        	batch_size = X.shape[0]
-        	pred = model(X)
-        	y = y.to(device)
-        	loss = loss_fn(pred, y)
+	with torch.no_grad(), \
+			tqdm(total=len(val_loader.dataset)) as progress_bar:
+		for batch, (X, y) in enumerate(val_loader):
+			X = X.to(device)
+			batch_size = X.shape[0]
+			pred = model(X)
+			y = y.to(device)
+			loss = loss_fn(pred, y)
 
-        	currTotal += batch_size
-        	lossTotal += loss * batch_size
-        	accuracyTotal += getCorrectCount(pred, y)
+			currTotal += batch_size
+			lossTotal += loss * batch_size
+			accuracyTotal += getCorrectCount(pred, y)
 			progress_bar.update(batch_size)
 			progress_bar.set_postfix(NLL=lossTotal / currTotal)
-    lossTotal = lossTotal / total
-    accuracyTotal = accuracyTotal / total
+	lossTotal = lossTotal / total
+	accuracyTotal = accuracyTotal / total
 	return lossTotal, accuracyTotal
 
 if __name__ == '__main__':

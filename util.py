@@ -32,14 +32,13 @@ class GoDataset(Dataset):
 def getPaths(prefix):
     fullDataPaths = []
     fullLabelPaths = []
-    for rank in ranks:
+    for rank in ['5k', '4k', '3k', '2k', '1k', '1d', '2d', '3d', '4d']:
         data = glob.glob(prefix + "data/" + rank + "/*.pt")
         labels = glob.glob(prefix + "labels/" + rank + "/*.pt")
-        for i in range(len(data)):
-            assert data[0].rsplit('/', 1)[1] == labels[0].rsplit('/', 1)[1]
-            print(rank, len(data), len(labels))
-            fullDataPaths.extend(data)
-            fullLabelPaths.extend(labels)
+        for i in tq(range(len(data))):
+            assert data[i].rsplit('/', 1)[1] == labels[i].rsplit('/', 1)[1]
+        fullDataPaths.extend(data)
+        fullLabelPaths.extend(labels)
     return fullDataPaths, fullLabelPaths
 
 def getCorrectCount(pred, y):

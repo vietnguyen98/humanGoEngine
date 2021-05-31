@@ -25,14 +25,14 @@ class OutputLayer(nn.Module):
 				counter += 1
 		self.bias = nn.Parameter(torch.zeros(55))
 
-    def forward(self, x):
-        # x: (batch_size, in_channels, 19, 19) => (batch_size, 1, 19, 19)
-        x = self.conv(x)
-        for i in range(19):
-        	for j in range(19):
-        		x[i][j] += self.bias[self.biasMap[i][j] - 1]
-        x = self.flatten(x)
-        return x
+	def forward(self, x):
+		# x: (batch_size, in_channels, 19, 19) => (batch_size, 1, 19, 19)
+		x = self.conv(x)
+		for i in range(19):
+			for j in range(19):
+				x[i][j] += self.bias[self.biasMap[i][j] - 1]
+		x = self.flatten(x)
+		return x
 
 class symConv2D(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size):
