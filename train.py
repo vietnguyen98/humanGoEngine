@@ -12,13 +12,14 @@ from tqdm import tqdm
 from util import GoDataset, getCorrectCount, getPaths
 from torch.utils.tensorboard import SummaryWriter
 from layers import OutputLayer
+from models import convNet
 
 def main():
 	# set hyperparameters:
-	num_epochs = 1
-	lr = .05
+	num_epochs = 5
+	lr = .001
 	max_grad_norm = 5.0
-	eval_every = 10000
+	eval_every = 50000
 	steps_till_eval = eval_every
 	bestAcc = -1
 	assert len(sys.argv) == 2
@@ -36,7 +37,8 @@ def main():
 	print("model will be saved here: ", modelSavePath)
 
 
-	model = OutputLayer(55)
+	# model = OutputLayer(55)
+	model = convNet(128, batchNorm = True)
 	model = model.to(device)
 	model.train()
 	loss_fn = nn.CrossEntropyLoss()
@@ -44,11 +46,14 @@ def main():
 
 	print("getting paths")
 	trainDPaths, trainLPaths = getPaths("../cleanedGoData/train/")
-	valDPaths, valLPaths = getPaths("../cleanedGoData/val/")
-	trainDPaths = trainDPaths[:50000]
-	trainLPaths = trainLPaths[:50000]
-	valDPaths = valDPaths[:10000]
-	valLPaths = valLPaths[:10000]
+	valDPaths, valLPaths = getPaths("../cleanedGoData/val/")   
+	# trainDPaths = trainDPaths[:50000]
+	# trainLPaths = trainLPaths[:50000]
+	inds = np.random.choice(len(valDPaths), 10000, replace = False)
+	valDPaths = (np.array(valDPaths)[inds]).tolist()
+	valLPaths = (np.array(valLPaths)[inds]).tolist()
+	for i in range(len(valDPaths)):
+		assert valDPaths[i].rsplit('/', 1)[1] == valLPaths[i].rsplit('/', 1)[1]
     
 	print("building dataset")
 	training_data = GoDataset(trainDPaths, trainLPaths)
@@ -87,10 +92,10 @@ def main():
 					loss_val, accuracy = evaluate(model, val_loader, device, loss_fn)
 					writer.add_scalar('val/NLL', loss_val, step)
 					writer.add_scalar('val/acc', accuracy, step)
-					if accuracy > bestAcc:
+					if accuracy >= bestAcc:
 						bestAcc = accuracy
 						torch.save(model, modelSavePath + str(step))
-						print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + str(step))
+						print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + "/"+ str(step) + ".pth")
 	return
 
 def evaluate(model, val_loader, device, loss_fn):
@@ -99,6 +104,7 @@ def evaluate(model, val_loader, device, loss_fn):
 	lossTotal = 0
 	accuracyTotal = 0
 	currTotal = 0
+	'''    
 	with torch.no_grad():
 		for batch, (X, y) in enumerate(val_loader):
 			X = X.to(device)
@@ -125,7 +131,6 @@ def evaluate(model, val_loader, device, loss_fn):
 			accuracyTotal += getCorrectCount(pred, y)
 			progress_bar2.update(batch_size)
 			progress_bar2.set_postfix(NLL = lossTotal.item() / currTotal)
-	'''
 	lossTotal = lossTotal / total
 	accuracyTotal = accuracyTotal / total
 	return lossTotal, accuracyTotal
