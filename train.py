@@ -13,11 +13,12 @@ from util import GoDataset, getCorrectCount, getPaths
 from torch.utils.tensorboard import SummaryWriter
 from layers import OutputLayer
 from models import convNet
+import glob
 
 def main():
 	# set hyperparameters:
-	num_epochs = 5
-	lr = .001
+	num_epochs = 10
+	lr = 0.001
 	max_grad_norm = 5.0
 	eval_every = 50000
 	steps_till_eval = eval_every
@@ -33,20 +34,30 @@ def main():
 		device = torch.device('cpu')
 	print("using device: ", device)
 
-	modelSavePath = "models/" + str(sys.argv[1])
+	modelSavePath = "models2/" + str(sys.argv[1])
 	print("model will be saved here: ", modelSavePath)
 
 
 	# model = OutputLayer(55)
-	model = convNet(128, batchNorm = True)
-	model = model.to(device)
+	#model = convNet(128, batchNorm = True)
+	#model = model.to(device)
+	print("loading model")    
+	model = torch.load("1krun2dup.pt")    
 	model.train()
 	loss_fn = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr = lr)
 
 	print("getting paths")
-	trainDPaths, trainLPaths = getPaths("../cleanedGoData/train/")
-	valDPaths, valLPaths = getPaths("../cleanedGoData/val/")   
+	#trainDPaths, trainLPaths = getPaths("../cleanedGoData/train/")
+	#valDPaths, valLPaths = getPaths("../cleanedGoData/val/")   
+	trainDPaths = glob.glob("../cleanedGoData/1ktrain/data/*")
+	trainLPaths = glob.glob("../cleanedGoData/1ktrain/labels/*")
+	for i in tqdm(range(len(trainDPaths))):
+		assert trainDPaths[i].rsplit('/', 1)[1] == trainLPaths[i].rsplit('/', 1)[1]
+	valDPaths = glob.glob("../cleanedGoData/1kval/data/*")
+	valLPaths = glob.glob("../cleanedGoData/1kval/labels/*")
+	for i in tqdm(range(len(valDPaths))):
+		assert valDPaths[i].rsplit('/', 1)[1] == valLPaths[i].rsplit('/', 1)[1]
 	# trainDPaths = trainDPaths[:50000]
 	# trainLPaths = trainLPaths[:50000]
 	inds = np.random.choice(len(valDPaths), 10000, replace = False)
@@ -63,8 +74,10 @@ def main():
 	train_loader = DataLoader(training_data, batch_size = 128, shuffle = True, num_workers = 4)
 	val_loader = DataLoader(val_data, batch_size = 128, shuffle = True, num_workers = 4)
 
-	step = 0 
+	step = 5155020 
 	for t in range(num_epochs):
+		torch.save(model, modelSavePath + str(step))
+		print("Saving model at: ", modelSavePath + "/"+ str(step) + ".pth")
 		print("Epoch ", t + 1, "\n-----------------------------")
 		with torch.enable_grad(), \
 				tqdm(total=len(train_loader.dataset)) as progress_bar:
@@ -96,6 +109,8 @@ def main():
 						bestAcc = accuracy
 						torch.save(model, modelSavePath + str(step))
 						print("new best acc of ", accuracy, "Saving model at: ", modelSavePath + "/"+ str(step) + ".pth")
+	torch.save(model, modelSavePath + str(step))
+	print("Saving model at: ", modelSavePath + "/"+ str(step) + ".pth")
 	return
 
 def evaluate(model, val_loader, device, loss_fn):
